@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: . # Caminho para a pasta onde está seu Dockerfile e o código React
+      dockerfile: Dockerfile # Nome do Dockerfile que você compartilhou
+    ports:
+      - "80:80" # Mapeia a porta 80 do host (VM) para a porta 80 do container
+    environment:
+      # A URL da sua API que será injetada no frontend em runtime
+      VITE_API_URL: "http://SEU_IP_OU_DOMINIO_DA_API:PORTA_DA_API"
+    restart: always

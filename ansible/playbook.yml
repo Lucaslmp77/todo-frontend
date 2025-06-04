@@ -1,0 +1,74 @@
+---
+- name: Configurar e Fazer Deploy da Aplicação
+  hosts: web_servers
+  become: yes # Para executar tarefas com privilégios de root
+
+  tasks:
+    - name: Atualizar cache de pacotes e fazer upgrade
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Instalar pacotes essenciais
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - git # Para clonar o projeto
+        state: present
+
+    - name: Adicionar chave GPG oficial do Docker
+      ansible.builtin.shell: |
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+    - name: Adicionar repositório Docker ao sources.list
+      ansible.builtin.shell: |
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: Instalar Docker Engine
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Adicionar usuário ao grupo docker
+      ansile.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Baixar Docker Compose standalone (alternativa ao plugin, se preferir)
+      ansible.builtin.get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+      # Pode remover esta tarefa se você já instalou docker-compose-plugin acima.
+
+    - name: Clonar ou copiar os arquivos do seu projeto
+      ansible.builtin.git:
+        repo: 'https://github.com/Lucaslmp77/todo-frontend.git' # Substitua pelo link do seu repositório
+        dest: /home/{{ ansible_user }}/my-project
+        version: main # Ou a branch que você usa
+      # Ou se preferir copiar arquivos locais:
+      # ansible.builtin.copy:
+      #   src: ../SEU_PROJETO_LOCAL/ # Caminho para a pasta do seu projeto local
+      #   dest: /home/{{ ansible_user }}/my-project/
+
+    - name: Executar o deploy da aplicação com docker-compose
+      ansible.builtin.community.docker.docker_compose:
+        project_src: /home/{{ ansible_user }}/my-project
+        state: present
+      # Ou se você tiver um comando docker-compose up -d diferente:
+      # ansible.builtin.shell: "docker-compose -f /home/{{ ansible_user }}/my-project/docker-compose.yml up -d"
+      # args:
+      #   chdir: /home/{{ ansible_user }}/my-project
