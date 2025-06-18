@@ -3,9 +3,7 @@ name: Deploy Frontend to PRODUCTION
 on:
   push:
     branches:
-      - main # <<< MUDANÇA: Gatilho para a branch de produção
-    paths:
-      - 'frontend/**' # Gatilho para a pasta do frontend
+      - main
 
 jobs:
   terraform:
