@@ -32,7 +32,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
   node_config {
     preemptible  = false # Use 'true' para economizar custos em Stage
-    machine_type = "e2-medium" # Bom para começar
+    machine_type = "e2-micro" # Bom para começar
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform",
     ]
