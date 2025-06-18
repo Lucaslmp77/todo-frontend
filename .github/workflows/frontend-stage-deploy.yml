@@ -3,9 +3,7 @@ name: Deploy Frontend to STAGE
 on:
   push:
     branches:
-      - develop # Usando 'develop' como exemplo para stage. Mude para 'main' se preferir.
-    paths:
-      - 'frontend/**' # Gatilho apenas se houver mudanças no frontend.
+      - develop
 
 jobs:
   # O job de Terraform é idêntico e garante que a infraestrutura está de pé.
